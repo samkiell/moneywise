@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { canEditPublication } from "@/lib/auth/permissions";
 import { publicationService } from "@/lib/services/publication.service";
 import { PublicationForm } from "@/components/admin/PublicationForm";
 
@@ -11,6 +14,8 @@ interface EditPublicationProps {
 
 export default async function EditPublicationPage({ params }: EditPublicationProps) {
   const { id } = await params;
+  const session = await auth();
+  const role = session?.user?.role ?? "editor";
   let publication = null;
 
   try {
@@ -36,6 +41,10 @@ export default async function EditPublicationPage({ params }: EditPublicationPro
     );
   }
 
+  if (!canEditPublication(role, publication.status)) {
+    redirect("/admin/publications");
+  }
+
   return (
     <div className="p-8 space-y-6 max-w-7xl">
       <div className="border-b border-neutral-border pb-6">
@@ -46,7 +55,7 @@ export default async function EditPublicationPage({ params }: EditPublicationPro
         </p>
       </div>
 
-      <PublicationForm initialData={publication} isEditing={true} />
+      <PublicationForm initialData={publication} isEditing={true} role={role} />
     </div>
   );
 }
