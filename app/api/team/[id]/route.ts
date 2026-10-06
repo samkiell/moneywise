@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth/guards";
+import { authErrorStatus, requirePermission } from "@/lib/auth/guards";
 import { teamService } from "@/lib/services/team.service";
 import { teamMemberSchema } from "@/lib/validations";
 
@@ -9,7 +9,7 @@ interface RouteParams {
 
 export async function PUT(req: Request, { params }: RouteParams) {
   try {
-    await requireAuth();
+    await requirePermission("team:manage");
     const { id } = await params;
     const json = await req.json();
 
@@ -29,14 +29,13 @@ export async function PUT(req: Request, { params }: RouteParams) {
     return NextResponse.json(updated);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    const status = message.includes("Unauthorized") ? 401 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message }, { status: authErrorStatus(message) });
   }
 }
 
 export async function DELETE(req: Request, { params }: RouteParams) {
   try {
-    await requireAuth();
+    await requirePermission("team:manage");
     const { id } = await params;
     const success = await teamService.delete(id);
     if (!success) {
@@ -45,7 +44,6 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     return NextResponse.json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    const status = message.includes("Unauthorized") ? 401 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message }, { status: authErrorStatus(message) });
   }
 }
