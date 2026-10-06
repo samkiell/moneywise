@@ -9,6 +9,7 @@ export default async function AdminAnalyticsPage() {
   let newsletterStats = { totalSubscribers: 0, recentSubscribers: 0 };
 
   try {
+    await analyticsService.ensureAggregates(14);
     const [aggregates, pages, newsletter] = await Promise.all([
       analyticsService.getDailyAggregates({ limit: 14 }),
       analyticsService.getTopPages(5),
