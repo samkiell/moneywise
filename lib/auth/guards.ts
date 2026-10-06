@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { can, Permission } from "@/lib/auth/permissions";
 import { UserRole } from "@/types";
 
 export interface AuthenticatedUser {
@@ -38,4 +39,24 @@ export async function requireAdmin(): Promise<AuthenticatedUser> {
   }
 
   return user;
+}
+
+/**
+ * Enforces a specific permission from the central policy (lib/auth/permissions).
+ */
+export async function requirePermission(permission: Permission): Promise<AuthenticatedUser> {
+  const user = await requireAuth();
+
+  if (!can(user.role, permission)) {
+    throw new Error(`Forbidden: missing permission ${permission}.`);
+  }
+
+  return user;
+}
+
+/** Maps guard errors to HTTP status codes. */
+export function authErrorStatus(message: string): number {
+  if (message.startsWith("Unauthorized")) return 401;
+  if (message.startsWith("Forbidden")) return 403;
+  return 500;
 }
