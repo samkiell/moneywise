@@ -4,7 +4,8 @@ dotenv.config({ path: ".env" });
 
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const testPort = process.env.TEST_PORT || "3001";
+const baseURL = process.env.TEST_BASE_URL || `http://localhost:${testPort}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -29,12 +30,16 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "node --env-file=.env node_modules/next/dist/bin/next start",
+    command: `node --env-file=.env node_modules/next/dist/bin/next start -p ${testPort}`,
     url: baseURL,
     reuseExistingServer: false,
     timeout: 60000,
     env: {
+      NEXT_DIST_DIR: ".next-test",
       NODE_OPTIONS: "-r ./scripts/dns-preload.js",
+      PORT: testPort,
+      AUTH_URL: baseURL,
+      NEXT_PUBLIC_APP_URL: baseURL,
     },
   },
 });
