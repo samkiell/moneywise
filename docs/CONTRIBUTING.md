@@ -128,3 +128,15 @@ Technical decisions live in DOCS.md.
 Team workflow lives in CONTRIBUTING.md.
 
 When code conflicts with the documentation, stop and resolve the discrepancy rather than inventing a new architecture.
+
+## Local Setup, Seed and E2E
+
+```bash
+cp .env.example .env     # fill in MONGODB_URI, AUTH_SECRET, SEED_ADMIN_*, TEST_ADMIN_*
+npm run db:seed          # idempotent; safe to run repeatedly
+npm run build            # required before E2E (Playwright starts `next start`)
+npm run test:e2e         # or: npm run test:e2e:ui
+```
+
+- Never point `MONGODB_URI` at production when seeding or running E2E.
+- `.env.production` is git-ignored. Use it only locally for `next start`.
