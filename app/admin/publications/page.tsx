@@ -1,16 +1,27 @@
 import Link from "next/link";
 import { Plus, Edit3 } from "lucide-react";
+import { auth } from "@/lib/auth";
 import { publicationService } from "@/lib/services/publication.service";
+import { PublicationActions } from "@/components/admin/PublicationActions";
+import { canEditPublication } from "@/lib/auth/permissions";
 import { IPublication } from "@/types";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+const STATUS_STYLES: Record<string, string> = {
+  draft: "bg-slate-100 text-slate-700",
+  review: "bg-yellow-50 text-yellow-700",
+  published: "bg-green-50 text-green-700",
+};
+
 export default async function AdminPublicationsPage() {
   let publications: IPublication[] = [];
+  const session = await auth();
+  const role = session?.user?.role ?? "editor";
 
   try {
-    const res = await publicationService.getPublished({ limit: 50 });
+    const res = await publicationService.getForAdmin({ limit: 50 });
     publications = res.publications;
   } catch (err) {
     console.warn("Unable to fetch publications for admin:", err);
@@ -68,20 +79,36 @@ export default async function AdminPublicationsPage() {
                     <td className="px-6 py-4 text-neutral-secondary">{pub.category}</td>
                     <td className="px-6 py-4 text-neutral-secondary">{pub.author}</td>
                     <td className="px-6 py-4">
-                      <span className="inline-block px-2 py-0.5 text-[11px] font-semibold uppercase rounded bg-green-50 text-green-700">
+                      <span className={`inline-block px-2 py-0.5 text-[11px] font-semibold uppercase rounded ${STATUS_STYLES[pub.status] ?? ""}`}>
                         {pub.status}
                       </span>
+                      {pub.featured && (
+                        <span className="ml-1 inline-block px-2 py-0.5 text-[11px] font-semibold uppercase rounded bg-yellow-50 text-yellow-700">
+                          Featured
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-xs text-neutral-secondary">
                       {formatDate(pub.publishedAt)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/admin/publications/${pub._id}/edit`}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" /> Edit
-                      </Link>
+                      <div className="flex flex-col items-end gap-2">
+                        {canEditPublication(role, pub.status) && (
+                          <Link
+                            href={`/admin/publications/${pub._id}/edit`}
+                            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" /> Edit
+                          </Link>
+                        )}
+                        <PublicationActions
+                          id={pub._id!}
+                          title={pub.title}
+                          status={pub.status}
+                          featured={pub.featured}
+                          role={role}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}
