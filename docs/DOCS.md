@@ -387,3 +387,28 @@ The deployment must provide separate environment variables for preview and produ
 5. Do not hardcode editorial content that belongs in the database.
 6. Do not over-engineer V1.
 7. Optimize based on actual usage rather than guesses.
+
+## 19. Implementation Notes
+
+### Tiptap editor
+- `components/admin/TiptapEditor.tsx` is the reusable publication editor (Tiptap StarterKit, Link, Image extensions).
+- Toolbar: bold, italic, strike, H1-H3, paragraph, bullet/ordered list, blockquote, horizontal rule, link, image URL, undo, redo.
+- Buttons reflect active state and are disabled when the command cannot run. The toolbar wraps on mobile.
+- Content is emitted as HTML into the `content` field of `Publication`. The database is the source of truth; nothing is stored in localStorage.
+
+### Seed
+- Run `npm run db:seed`. It is idempotent (upserts keyed on name/slug/email).
+- Seeds: the five PRD editorial team members (no bios, photos or social links), the core pillar categories, sample publications, and one admin user.
+- Required env vars: `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`. The script exits with an error if either is missing. The password is hashed with bcrypt and never printed.
+
+### Cloudinary uploads
+- Flow: Admin UI (`components/admin/ImageUpload.tsx`) -> `POST /api/upload` -> `uploadToCloudinary` in `lib/cloudinary` -> Cloudinary -> `{ url, publicId }` -> saved on the Publication or TeamMember.
+- The route requires an authenticated session, accepts JPEG/PNG/WebP/AVIF/GIF up to 5 MB, and returns clear errors when Cloudinary is not configured.
+- `CLOUDINARY_API_SECRET` is only read server-side. No binaries are stored in MongoDB.
+
+### Playwright E2E
+- Specs live in `tests/e2e` (`public`, `auth`, `admin`). Config: `playwright.config.ts`.
+- `webServer` runs `next start`, so run `npm run build` first. `scripts/dns-preload.js` is injected via `NODE_OPTIONS` to make Atlas SRV lookups reliable on Windows.
+- The system Chrome channel is used. If it is not installed, run `npx playwright install chromium` and remove `channel: "chrome"`.
+- Env vars: `TEST_ADMIN_EMAIL`, `TEST_ADMIN_PASSWORD` (fall back to the seed admin). Tests need a seeded database, and `MONGODB_URI` must point to a development database, never production.
+- Commands: `npm run test:e2e`, `npm run test:e2e:ui`.
