@@ -84,4 +84,17 @@ test.describe("Public Magazine Flows", () => {
 
     await expect(page.locator("text=You are already subscribed to the Money Wise newsletter!")).toBeVisible({ timeout: 10000 });
   });
+
+  test("First-party analytics tracker fires page_view events silently", async ({ page, request }) => {
+    // Test API route responds with 204 No Content for valid telemetry payload
+    const response = await request.post("/api/analytics/track", {
+      data: {
+        eventName: "page_view",
+        pathname: "/stories",
+        anonymousId: "anon_test_123",
+        sessionId: "sess_test_123",
+      },
+    });
+    expect(response.status()).toBe(204);
+  });
 });
