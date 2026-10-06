@@ -4,7 +4,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import LinkExtension from "@tiptap/extension-link";
 import ImageExtension from "@tiptap/extension-image";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Bold,
   Italic,
@@ -22,6 +22,7 @@ import {
   Undo,
   Redo,
   ImageIcon,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -91,13 +92,42 @@ export function TiptapEditor({
     editor.chain().focus().extendMarkRange("link").setLink({ href: url.trim() }).run();
   }, [editor]);
 
-  const addImage = useCallback(() => {
-    if (!editor) return;
-    const url = window.prompt("Enter image URL:");
-    if (url && url.trim() !== "") {
-      editor.chain().focus().setImage({ src: url.trim() }).run();
-    }
-  }, [editor]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const handleImageUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !editor) return;
+
+      setIsUploadingImage(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", "moneywise/content");
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to upload image.");
+        }
+
+        editor.chain().focus().setImage({ src: data.secureUrl }).run();
+      } catch (err) {
+        alert(err instanceof Error ? err.message : "Failed to upload image.");
+      } finally {
+        setIsUploadingImage(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    },
+    [editor]
+  );
 
   if (!editor) {
     return (
@@ -328,13 +358,25 @@ export function TiptapEditor({
           )}
           <button
             type="button"
-            onClick={addImage}
-            aria-label="Insert image"
-            title="Insert image by URL"
-            className="p-1.5 rounded text-neutral-secondary hover:text-neutral-main hover:bg-white"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploadingImage || disabled}
+            aria-label="Upload image"
+            title="Upload and insert image"
+            className="p-1.5 rounded text-neutral-secondary hover:text-neutral-main hover:bg-white disabled:opacity-50"
           >
-            <ImageIcon className="w-4 h-4" />
+            {isUploadingImage ? (
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            ) : (
+              <ImageIcon className="w-4 h-4" />
+            )}
           </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png, image/jpeg, image/webp, image/avif, image/gif"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
         </div>
       </div>
 
