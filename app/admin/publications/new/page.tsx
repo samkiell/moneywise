@@ -1,6 +1,12 @@
+import { auth } from "@/lib/auth";
 import { PublicationForm } from "@/components/admin/PublicationForm";
 
-export default function NewPublicationPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NewPublicationPage() {
+  const session = await auth();
+  const role = session?.user?.role ?? "editor";
+
   return (
     <div className="p-8 space-y-6 max-w-7xl">
       <div className="border-b border-neutral-border pb-6">
@@ -11,7 +17,7 @@ export default function NewPublicationPage() {
         </p>
       </div>
 
-      <PublicationForm />
+      <PublicationForm role={role} />
     </div>
   );
 }
