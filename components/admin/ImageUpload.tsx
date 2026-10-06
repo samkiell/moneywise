@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Loader2 } from "lucide-react";
 
 interface ImageUploadProps {
   value?: string;
@@ -115,18 +115,6 @@ export function ImageUpload({
           )}
         </div>
       )}
-
-      {/* Manual direct URL fallback input */}
-      <div className="flex items-center gap-2 pt-1">
-        <ImageIcon className="w-3.5 h-3.5 text-neutral-secondary flex-shrink-0" />
-        <input
-          type="url"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Or paste external Cloudinary / image URL directly..."
-          className="w-full text-xs px-2.5 py-1.5 bg-surface border border-neutral-border rounded focus:outline-none focus:ring-1 focus:ring-primary text-neutral-main"
-        />
-      </div>
 
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
 
