@@ -1,6 +1,8 @@
 import { v2 as cloudinary } from "cloudinary";
 
-if (process.env.CLOUDINARY_CLOUD_NAME) {
+if (process.env.CLOUDINARY_URL) {
+  cloudinary.config({ secure: true });
+} else if (process.env.CLOUDINARY_CLOUD_NAME) {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -25,9 +27,10 @@ export async function uploadToCloudinary(
   folder: string = "moneywise"
 ): Promise<CloudinaryUploadResult> {
   if (
-    !process.env.CLOUDINARY_CLOUD_NAME ||
-    !process.env.CLOUDINARY_API_KEY ||
-    !process.env.CLOUDINARY_API_SECRET
+    !process.env.CLOUDINARY_URL &&
+    (!process.env.CLOUDINARY_CLOUD_NAME ||
+      !process.env.CLOUDINARY_API_KEY ||
+      !process.env.CLOUDINARY_API_SECRET)
   ) {
     throw new Error("Cloudinary environment variables are not configured.");
   }
