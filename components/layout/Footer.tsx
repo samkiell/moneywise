@@ -47,7 +47,17 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-neutral-border flex flex-col sm:flex-row justify-between items-center text-xs text-neutral-secondary">
           <p>&copy; {new Date().getFullYear()} OAU Cowrywise Community. All rights reserved.</p>
-          <p className="mt-2 sm:mt-0">Built with purpose and financial clarity.</p>
+          <p className="mt-2 sm:mt-0">
+            Built by{" "}
+            <a
+              href="https://samkiel.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-neutral-main hover:text-primary transition-colors underline"
+            >
+              samkiel
+            </a>
+          </p>
         </div>
       </div>
     </footer>
