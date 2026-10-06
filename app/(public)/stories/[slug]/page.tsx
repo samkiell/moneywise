@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { publicationService } from "@/lib/services/publication.service";
 import { formatDate } from "@/lib/utils";
+import { sanitizeContent } from "@/lib/sanitize";
 import { ArrowLeft, Clock, Calendar, User } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -88,7 +89,7 @@ export default async function StoryDetailPage({ params }: PageProps) {
       </header>
 
       <div className="prose prose-slate max-w-none mt-10 py-4 font-serif text-base leading-relaxed text-neutral-main">
-        <div dangerouslySetInnerHTML={{ __html: publication.content }} />
+        <div dangerouslySetInnerHTML={{ __html: sanitizeContent(publication.content) }} />
       </div>
     </article>
   );
