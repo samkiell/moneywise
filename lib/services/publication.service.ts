@@ -59,6 +59,29 @@ export const publicationService = {
     };
   },
 
+  async getForAdmin(
+    options: { status?: PublicationStatus; limit?: number; skip?: number } = {}
+  ): Promise<{ publications: IPublication[]; total: number }> {
+    if (!process.env.MONGODB_URI) return { publications: [], total: 0 };
+    await connectDB();
+    const query: Record<string, unknown> = {};
+    if (options.status) query.status = options.status;
+
+    const [docs, total] = await Promise.all([
+      Publication.find(query)
+        .sort({ updatedAt: -1 })
+        .skip(options.skip || 0)
+        .limit(options.limit || 50)
+        .lean(),
+      Publication.countDocuments(query),
+    ]);
+
+    return {
+      publications: (docs as unknown as IPublicationDocument[]).map(toPlainObject),
+      total,
+    };
+  },
+
   async getFeatured(): Promise<IPublication | null> {
     if (!process.env.MONGODB_URI) return null;
     await connectDB();
@@ -86,7 +109,7 @@ export const publicationService = {
   async search(searchTerm: string, limit: number = 20): Promise<IPublication[]> {
     if (!process.env.MONGODB_URI) return [];
     await connectDB();
-    const regex = new RegExp(searchTerm, "i");
+    const regex = new RegExp(searchTerm.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     const docs = await Publication.find({
       status: "published",
       $or: [
