@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth/guards";
+import { authErrorStatus, requirePermission } from "@/lib/auth/guards";
 import { teamService } from "@/lib/services/team.service";
 import { teamMemberSchema } from "@/lib/validations";
 
@@ -15,7 +15,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    await requireAuth();
+    await requirePermission("team:manage");
     const json = await req.json();
 
     const validated = teamMemberSchema.safeParse(json);
@@ -30,7 +30,6 @@ export async function POST(req: Request) {
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    const status = message.includes("Unauthorized") ? 401 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message }, { status: authErrorStatus(message) });
   }
 }
