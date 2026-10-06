@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IPublication } from "@/types";
+import { IPublication, UserRole } from "@/types";
+import { can } from "@/lib/auth/permissions";
 import { TiptapEditor } from "@/components/admin/TiptapEditor";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
 interface PublicationFormProps {
   initialData?: IPublication;
   isEditing?: boolean;
+  role?: UserRole;
 }
 
-export function PublicationForm({ initialData, isEditing = false }: PublicationFormProps) {
+export function PublicationForm({ initialData, isEditing = false, role = "editor" }: PublicationFormProps) {
+  const canPublish = can(role, "publication:publish");
+  const canFeature = can(role, "publication:feature");
   const router = useRouter();
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
@@ -143,7 +147,7 @@ export function PublicationForm({ initialData, isEditing = false }: PublicationF
           >
             <option value="draft">Draft</option>
             <option value="review">Review</option>
-            <option value="published">Published</option>
+            {canPublish && <option value="published">Published</option>}
           </select>
         </div>
       </div>
@@ -180,17 +184,19 @@ export function PublicationForm({ initialData, isEditing = false }: PublicationF
         />
       </div>
 
-      <div className="flex items-center gap-6 pt-4 border-t border-neutral-border">
-        <label className="flex items-center gap-2 text-xs font-medium text-neutral-main cursor-pointer">
-          <input
-            type="checkbox"
-            checked={formData.featured}
-            onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-            className="rounded border-neutral-border text-primary focus:ring-primary"
-          />
-          Feature on Homepage
-        </label>
-      </div>
+      {canFeature && (
+        <div className="flex items-center gap-6 pt-4 border-t border-neutral-border">
+          <label className="flex items-center gap-2 text-xs font-medium text-neutral-main cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.featured}
+              onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+              className="rounded border-neutral-border text-primary focus:ring-primary"
+            />
+            Feature on Homepage
+          </label>
+        </div>
+      )}
 
       <div className="flex justify-end gap-3 pt-4 border-t border-neutral-border">
         <button
