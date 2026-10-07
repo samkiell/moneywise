@@ -1,4 +1,6 @@
 "use server";
+import { headers } from "next/headers"; 
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 import { subscriberService } from "@/lib/services/subscriber.service";
 import { subscriberSchema } from "@/lib/validations";
@@ -13,9 +15,16 @@ export async function subscribeToNewsletter(
   prevState: SubscribeActionState,
   formData: FormData
 ): Promise<SubscribeActionState> {
+  const ip = getClientIp(await headers());
+
   const email = formData.get("email");
   const name = formData.get("name");
-
+  const limit = rateLimit(`newsletter:${ip}`, 5, 10 * 60_000); 
+  if (!limit.allowed) { 
+    return { 
+      error: "Too many requests. Please wait a few minutes before trying again.", 
+    };
+   }
   const validation = subscriberSchema.safeParse({
     email,
     name: name ? String(name) : undefined,
