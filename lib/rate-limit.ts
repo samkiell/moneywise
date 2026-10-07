@@ -45,3 +45,7 @@ export function rateLimit(
 export function getClientIp(headers: Headers): string {
   return headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
 }
+
+export function resetRateLimit(key: string): void {
+  store.delete(key);
+}
