@@ -1,3 +1,4 @@
+import { rateLimit, getClientIp } from "@/lib/rate-limit"; 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { analyticsService } from "@/lib/services/analytics.service";
@@ -31,7 +32,14 @@ function referrerHost(referrer: string | undefined, ownHost: string): string {
 export async function POST(req: NextRequest) {
   const ua = parseUserAgent(req.headers.get("user-agent"));
   if (ua.isBot) return new NextResponse(null, { status: 204 });
-
+  const ip = getClientIp(req.headers);
+  const limit = rateLimit(`analytics:${ip}`, 60, 60_000); 
+  if (!limit.allowed) { 
+    return NextResponse.json( 
+      { error: "Too many requests. Please slow down." }, 
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } } 
+    ); 
+  }
   let body: unknown;
   try {
     body = await req.json();
