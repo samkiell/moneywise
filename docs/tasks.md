@@ -135,7 +135,7 @@ Create the root `README.md` so new developers can understand Money Wise, set it 
 ## Task 4: Add Team Photos to the Website
 **Assignee:** [Foxx63](https://github.com/Foxx63)  
 **Branch:** `feat/team-photos`  
-**Assets:** [Team photos Google Drive folder](https://drive.google.com/drive/folders/19TE7NIDZWIM2ofO5I_GTJiz-VHnAYY9)
+**Assets:** [Team photos Google Drive folder](https://drive.google.com/drive/folders/19TE7NIDZWIM2ofO5I_GTJiz-VHnAYY9N)
 
 ### Objective
 Add the supplied team members' photos to the Money Wise website so the team section displays the correct photos for each person.
