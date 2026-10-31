@@ -25,7 +25,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!limit.allowed) return null;
 
         await connectDB();
-        const user = await User.findOne({ email: validated.data.email, active: true }).select("+password");
+        const user = await User.findOne({
+          email: validated.data.email.toLowerCase().trim(),
+          active: true,
+        }).select("+password");
         if (!user || !user.password) return null;
 
         const isValid = await bcrypt.compare(validated.data.password, user.password);

@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
   secret: process.env.AUTH_SECRET || "moneywise_super_secure_scaffold_secret_key_32chars",
   pages: {
     signIn: "/admin/login",
